@@ -1,0 +1,46 @@
+Score: Easy and Fun Music Transcription
+
+features:
+ - rhythm input via keypresses to get the rhythm entered separately from the pitches
+ - for drums: entry of individual parts of the beat (different drums) independently
+ - sync up the transcription track with the actual music
+ - enter some measures of transcription and loop them in either direction, a la garageband
+ - tap to specify tempo
+ - loop-playback of one or more measures
+ - alternate transcriptions, listen to each and decide which is more accurate
+ - use of tablature or sheet music, switch back and forth
+ - playback of transcription
+ - ?
+
+v2
+ - analyze music with assistance of transcription (look for frequencies that peak at the times specified by transcription)
+ 
+development plan:
+ music notes datastore
+ sheet music display
+ tab view (this will take some algorithm to turn pitches into tab)
+ 
+TODOs:
+ make it quit properly after sound is played (?)
+ create a better mapping from (note names <=> pitch numbers) [probably just gonna end up using two straight maps {redundancy argh!}]
+ package up "Easy" font with app
+ look at "Feta" font used by lilypond, might be prettier
+ fix getNameObject etc to handle negative pitch values
+ make getNameObject also return whether it's sharp or flat or whatever (possibly take a parameter of whether to return sharps or flats)
+ rests!
+ manual note entry interface
+ ability to enter rhythm first, then specify notes
+ keys / key signatures
+ unflip WaveformGUI vertically
+ make better clicks!
+ make pitch classes start at C instead of A
+ create controls to manipulate ADSR envelopes
+ implement a GUI for the musical keyboard to show what's being played!
+ figure out why my sine waves sound weird, esp. when with ADSR applied
+ think of a better way than frequently flushing to make sure that keyboard presses are immediately played
+ implement the ability to play set melodies using ThreadedPlayer (so they are played asynchronously)
+ make threadedplayer do adsr
+ Next iteration of ThreadedPlayer's loop:
+  1) (make sure that framesHeld is being calculated correctly (do it in terms of time since key pressed, convert to frames))
+  2) if we need to generate more data, generate a buffer's worth of data
+  3) sleep for a millisecond
