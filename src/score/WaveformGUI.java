@@ -29,7 +29,8 @@ public class WaveformGUI extends JPanel {
 		this.waveform = newWaveform;
 		this.repaint();
 	}
-	
+
+	// Adding a comment to test git. Now changing my comment.
 	public void paintComponent(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setColor(Color.WHITE);
