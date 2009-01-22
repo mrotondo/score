@@ -15,9 +15,12 @@ public class ScoreTest {
 		
 		System.out.println("About to test Player");
 		test.testPlayer();
-		
+
 		System.out.println("About to test Score");
 		test.testScore();
+
+		System.out.println("About to test ToneWriter");
+		test.testToneWriter();
 		
 		System.out.println("Success!");
 	}
@@ -134,10 +137,15 @@ public class ScoreTest {
 		gAssEqString(Tone.pitchToNameObject(10).toString(), "G");
 		gAssEqString(Tone.pitchToNameObject(11).toString(), "G");
 		gAssEqString(Tone.pitchToNameObject(12).toString(), "A");
-
-
 	}
-
+	
+	private void testToneWriter() {
+		SineWriter sw = new SineWriter(440, 1.0, 44100);
+		gAssEqInt(44100, sw.millisInSamples(1000));
+		gAssEqInt(4410, sw.millisInSamples(100));
+		gAssEqInt(441, sw.millisInSamples(10));
+	}
+	
 	private void gAssEqDouble(double val1, double val2) {
 		if (val1 != val2) {
 			throw new RuntimeException(val1 + " does not equal " + val2);
