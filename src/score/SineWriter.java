@@ -47,5 +47,18 @@ public class SineWriter implements ToneWriter {
 			return null;
 		}
 	}
+
+	public double[] getAmplitudes(int positionInSamples, int numSamples) {
+		if (millisInSamples(System.currentTimeMillis() - timeStartedMillis) - samplesSent <= numSamples) {
+			return null;
+		} else {
+			double[] amplitudes = new double[numSamples];
+			for (int i = 0; i < numSamples; i++) {
+				amplitudes[i] = Math.sin((((positionInSamples + i) * 2 * Math.PI) / samplesPerSecond) * frequency) * volume;
+			}
+			samplesSent += numSamples;
+			return amplitudes;
+		}
+	}
 	
 }

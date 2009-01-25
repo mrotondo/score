@@ -23,7 +23,7 @@ public class AudioWriter implements Runnable {
 	WaveformGUI waveformGUI;
 	
 	public AudioWriter(WaveformGUI waveform) throws LineUnavailableException {
-		writeBuffer = new byte[(int) (SAMPLES_PER_SECOND / 1000)];  // Write to the SourceDataLine every nth of a second
+		writeBuffer = new byte[(int) (SAMPLES_PER_SECOND / 800)];  // Write to the SourceDataLine every nth of a second
 		format = new AudioFormat(SAMPLES_PER_SECOND, 8, 1 , true, true);
 		dataLine = AudioSystem.getSourceDataLine(format);
 		toneMap = new HashMap<Double, ToneWriter>();
@@ -52,33 +52,35 @@ public class AudioWriter implements Runnable {
 			}
 			
 			if (toneArray.length > 0) {
-				//System.out.println("Looking at " + toneArray.length + " tones");
-				// TODO: I should probably copy the toneMap here because the concurrent map can be non-empty on the line above this and empty on the line below
 				perSignalAmplitude = MAX_TONE_AMPLITUDE / toneArray.length; // normalize the volume of all the tones to produce exactly max volume
 				
 				double amplitude = 0;
-				boolean write = true;
-				for (Object tone : toneArray) {
-					ToneWriter toneWriter = (ToneWriter) tone;
-					Double toneAmplitude = toneWriter.getAmplitude(signalCounter);
-					if (toneAmplitude == null) {
-						write = false;
+				boolean send = true;
+				double[][] signals = new double[toneArray.length][writeBuffer.length];
+
+				// TODO: Instead of checking to see if a tone can write n, writing n, and then re-writing n, might just check to see if it can write n
+				//       and then write those during one pass for all tones that can do so (or just fail if any can't write n)
+				for (int toneIndex = 0; toneIndex < toneArray.length; toneIndex++) {
+					ToneWriter toneWriter = (ToneWriter) toneArray[toneIndex];
+					double[] toneAmplitudes = toneWriter.getAmplitudes(signalCounter, writeBuffer.length);
+					
+					if (toneAmplitudes == null) {
+						send = false;
 						break;
 					}
-					amplitude += toneAmplitude * perSignalAmplitude;
-				}
-				if (write) {
-					writeBuffer[writePosition++] = (byte) amplitude;
-					signalCounter++;
+					signals[toneIndex] = toneAmplitudes;
 				}
 				
-				if (writePosition == writeBuffer.length) {
-					dataLine.write(writeBuffer, 0, writePosition);
-					writePosition = 0;
-				}
 				
-			} else {
-				if (writePosition != 0) {
+				if (send) {
+					for (writePosition = 0; writePosition < writeBuffer.length; writePosition++, signalCounter++) {
+						amplitude = 0;
+						for (int toneIndex = 0; toneIndex < toneArray.length; toneIndex++) {
+							amplitude += signals[toneIndex][writePosition] * perSignalAmplitude;
+							writeBuffer[writePosition] = (byte) amplitude;
+						}
+					}
+					
 					dataLine.write(writeBuffer, 0, writePosition);
 					writePosition = 0;
 				}
@@ -119,14 +121,14 @@ public class AudioWriter implements Runnable {
 			//sendData = false;
 			//}
 
-			/*
+			
 			try {
 				Thread.sleep(1);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			*/
+			
 		}
 		dataLine.stop();
 		dataLine.flush();
