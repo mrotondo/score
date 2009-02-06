@@ -40,7 +40,3 @@ TODOs:
  think of a better way than frequently flushing to make sure that keyboard presses are immediately played
  implement the ability to play set melodies using ThreadedPlayer (so they are played asynchronously)
  make threadedplayer do adsr
- Next iteration of ThreadedPlayer's loop:
-  1) (make sure that framesHeld is being calculated correctly (do it in terms of time since key pressed, convert to frames))
-  2) if we need to generate more data, generate a buffer's worth of data
-  3) sleep for a millisecond

@@ -1,4 +1,4 @@
-package score;
+package transcription;
 
 public class Measure {
 

@@ -1,8 +1,8 @@
-package score;
+package audio;
 
 public class Tone {
 
-	enum Name {
+	public enum Name {
 		A(0), B(2), C(3), D(5), E(7), F(8), G(10);
 		
 		public int pitchPerOctave;

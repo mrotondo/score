@@ -1,4 +1,4 @@
-package score;
+package ui;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -9,6 +9,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 import javax.swing.JPanel;
+
+import transcription.Note;
+import transcription.Score;
 
 @SuppressWarnings("serial")
 public class StaffGUI extends JPanel {

@@ -1,10 +1,12 @@
-package score;
+package ui;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.concurrent.ConcurrentHashMap;
+
+import score.ScoreApp;
 
 public class UIController implements KeyListener, MouseListener {
 

@@ -1,8 +1,10 @@
-package score;
+package transcription;
+
+import audio.Tone;
 
 public class Note {
 
-	enum Length {
+	public enum Length {
 		THIRTYSECOND,
 		SIXTEENTH,
 		EIGHTH,

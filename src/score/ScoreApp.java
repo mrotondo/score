@@ -8,9 +8,22 @@ import java.awt.event.WindowEvent;
 import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 
+import transcription.Note;
+import transcription.Score;
+import ui.StaffGUI;
+import ui.ToneKeyboard;
+import ui.UIController;
+import ui.WaveformGUI;
+import audio.FilterFactory;
+import audio.LogFilter;
+import audio.Metronome;
+import audio.NoOpFilter;
+import audio.Player;
+import audio.ThreadedPlayer;
+import audio.Tone;
+
 public class ScoreApp {
 
-	ThreadedPlayer threadedPlayer;
 	Score score;
 	WaveformGUI waveformGUI;
 	StaffGUI staffGUI;
@@ -19,14 +32,17 @@ public class ScoreApp {
 	Metronome metronome;
 	
 	public ScoreApp() {
+		FilterFactory.addFilterPrototype(new NoOpFilter());
+		//FilterFactory.addFilterPrototype(new NoiseFilter());
+		FilterFactory.addFilterPrototype(new LogFilter(10000));
+		
 		staffGUI = new StaffGUI();
-		waveformGUI = new WaveformGUI(Player.getClickBytes(1.0));
-		threadedPlayer = new ThreadedPlayer(waveformGUI);
-		toneKeyboard = new ToneKeyboard(threadedPlayer);
+		waveformGUI = new WaveformGUI(Player.getToneBytes(new Tone(440), 1.0));
+		toneKeyboard = new ToneKeyboard();
 		
 		initTestScore();
 		
-		metronome = new Metronome(score, threadedPlayer);
+		metronome = new Metronome(score);
 		
 		uiController = new UIController(this);
 	}
@@ -57,6 +73,7 @@ public class ScoreApp {
 		//score.addNote(new Note(new Tone(-2), Note.Length.WHOLE)); // Why broken??!
 
 		//score.playNotes();
+		score.play();
 	}
 	
 	public static void main(String[] args) {
@@ -66,7 +83,7 @@ public class ScoreApp {
 		JFrame appFrame = new JFrame("Score");
 		appFrame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) { 
-				scoreApp.threadedPlayer.stop();
+				ThreadedPlayer.instance.stop();
 				System.exit(0); }
 		});
 				

@@ -1,21 +1,23 @@
-package score;
+package ui;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
+import audio.ThreadedPlayer;
+import audio.Tone;
+
+
 public class ToneKeyboard implements KeyListener {
 
 	final HashMap<Integer, Integer> keyToneMap = new HashMap<Integer, Integer>();
 	final ConcurrentHashMap<Integer, Boolean> keyPressedMap = new ConcurrentHashMap<Integer, Boolean>();
-	ThreadedPlayer threadedPlayer;
 	
-	public ToneKeyboard(ThreadedPlayer threadedPlayer) {
+	public ToneKeyboard() {
 		super();
 		
 		initKeyToneMap();
-		this.threadedPlayer = threadedPlayer;
 	}
 	
 	public void initKeyToneMap() {
@@ -41,7 +43,7 @@ public class ToneKeyboard implements KeyListener {
 		int keyCode = e.getKeyCode();
 		if (keyToneMap.containsKey(keyCode) && !keyPressedMap.get(keyCode)) {
 			int pitch = keyToneMap.get(keyCode);			
-			threadedPlayer.startTone(new Tone(pitch).getFrequency());
+			ThreadedPlayer.instance.startTone(new Tone(pitch).getFrequency());
 			keyPressedMap.put(keyCode, true);
 		}
 	}
@@ -49,7 +51,7 @@ public class ToneKeyboard implements KeyListener {
 	public void keyReleased(KeyEvent e) {
 		int keyCode = e.getKeyCode();
 		if (keyToneMap.containsKey(keyCode)) {
-			threadedPlayer.stopTone(new Tone(keyToneMap.get(keyCode)).getFrequency());
+			ThreadedPlayer.instance.stopTone(new Tone(keyToneMap.get(keyCode)).getFrequency());
 			keyPressedMap.put(keyCode, false);
 		}
 	}

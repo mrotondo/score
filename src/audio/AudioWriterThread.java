@@ -1,4 +1,4 @@
-package score;
+package audio;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -8,7 +8,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
-public class AudioWriter implements Runnable {
+public class AudioWriterThread extends Thread {
 
 	static final float SAMPLES_PER_SECOND = 44100;
 	static final int MAX_TONE_AMPLITUDE = 62;
@@ -20,15 +20,13 @@ public class AudioWriter implements Runnable {
 	SourceDataLine dataLine;
 	HashMap<Double, ToneWriter> toneMap;
 	LinkedList<Integer> clickPositions;
-	WaveformGUI waveformGUI;
 	
-	public AudioWriter(WaveformGUI waveform) throws LineUnavailableException {
-		writeBuffer = new byte[(int) (SAMPLES_PER_SECOND / 800)];  // Write to the SourceDataLine every nth of a second
+	public AudioWriterThread() throws LineUnavailableException {
+		writeBuffer = new byte[(int) (SAMPLES_PER_SECOND / 400)];  // Write to the SourceDataLine every nth of a second
 		format = new AudioFormat(SAMPLES_PER_SECOND, 8, 1 , true, true);
 		dataLine = AudioSystem.getSourceDataLine(format);
 		toneMap = new HashMap<Double, ToneWriter>();
 		clickPositions = new LinkedList<Integer>();
-		this.waveformGUI = waveform;
 	}
 	
 	public void run() {
@@ -42,7 +40,7 @@ public class AudioWriter implements Runnable {
 		writePosition = 0; // iterates through writeBuffer, looping
 		signalCounter = 0; // counts up from 0 over time, gives position in the sine wave
 		
-		while(!Thread.interrupted()) {
+		while(!isInterrupted()) {
 			
 			int perSignalAmplitude = 127;  // un-normalized
 			
@@ -105,23 +103,6 @@ public class AudioWriter implements Runnable {
 				}
 			}*/
 
-			/*
-			if (advanceWritePosition) {
-				//writePosition++;
-				i++;
-				advanceWritePosition = false;
-			}*/
-			
-			//if (writePosition == writeBuffer.length) { // || sendData) {
-			//System.out.println(writePosition);
-			//millisSent += writePosition * TIME CONVERSION;
-			
-			//waveformGUI.setWaveform(writeBuffer);
-			//writePosition = 0;
-			//sendData = false;
-			//}
-
-			
 			try {
 				Thread.sleep(1);
 			} catch (InterruptedException e) {
@@ -136,7 +117,9 @@ public class AudioWriter implements Runnable {
 	
 	public void startTone(double freq) {
 		synchronized(toneMap) {
-			toneMap.put(freq, new SineWriter(freq, 1.0, SAMPLES_PER_SECOND));
+			SineWriter sineWriter = new SineWriter(freq, 1.0);
+			FilterFactory.applyFilters(sineWriter);
+			toneMap.put(freq, sineWriter);
 		}
 	}
 

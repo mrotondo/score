@@ -1,4 +1,4 @@
-package score;
+package audio;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
@@ -8,15 +8,15 @@ import javax.sound.sampled.LineUnavailableException;
 
 public class Player {
 	
-	static final float SAMPLES_PER_SECOND = 44100;
+	public static final float SAMPLES_PER_SECOND = 44100;
 	static final double VOLUME = 1.0;
 	
 	// These are "per-instrument" variables
 	static double maxAmplitude = 120.0;  // This is in "bytes" or something, but should be in decibels?!?
-	static double attackTimeMs = 100.0;
-	static double decayTimeMs = 100.0;
-	static double relativeSustainAmplitude = 0.3;  // This is in "bytes" or something, but should be in decibels?!?
-	static double releaseTimeMs = 100.0;
+	static double attackTimeMs = 10.0;
+	static double decayTimeMs = 10.0;
+	static double relativeSustainAmplitude = 0.1;  // This is in "bytes" or something, but should be in decibels?!?
+	static double releaseTimeMs = 0.0;
 
 	public static void playTone(Tone tone, double duration) throws LineUnavailableException {		
 		AudioFormat format = new AudioFormat(SAMPLES_PER_SECOND, 8, 1, true, true);

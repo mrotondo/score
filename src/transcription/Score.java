@@ -1,8 +1,13 @@
-package score;
+package transcription;
 
 import java.util.LinkedList;
 
 import javax.sound.sampled.LineUnavailableException;
+
+import audio.Player;
+import audio.ScorePlayerThread;
+
+import ui.StaffGUI;
 
 public class Score {
 
@@ -12,6 +17,9 @@ public class Score {
 	public LinkedList<Note> notes;
 	public StaffGUI staffGUI;
 	
+	boolean currentlyPlaying;
+	Thread playerThread;
+	
 	public Score(double tempo, Note.Length getsTheBeat, int beatsPerMeasure, StaffGUI staffGUI) {
 		this.tempo = tempo;
 		this.getsTheBeat = getsTheBeat;
@@ -19,6 +27,8 @@ public class Score {
 		this.staffGUI = staffGUI;
 		this.staffGUI.setScore(this);
 		notes = new LinkedList<Note>();
+		
+		currentlyPlaying = false;
 	}
 	
 	public void addNote(Note note) {
@@ -60,6 +70,19 @@ public class Score {
 		return timeSignature;
 	}
 	
+	public void play() {
+		if (!currentlyPlaying) {
+			currentlyPlaying = true;
+			playerThread = new ScorePlayerThread(this);
+			playerThread.start();
+		}
+	}
+	
+	public void stop() {
+		playerThread.interrupt();
+		currentlyPlaying = false;
+	}
+		
 	public static double noteDuration(Note.Length length, double tempo, Note.Length getsTheBeat) {
 		double beatsPerNote = Score.beatsPerNote(length, getsTheBeat);
 		return beatDuration(tempo) * beatsPerNote;

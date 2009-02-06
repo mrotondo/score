@@ -1,23 +1,23 @@
-package score;
+package audio;
 
 import javax.sound.sampled.LineUnavailableException;
 
+import transcription.Note;
+
 public class ThreadedPlayer {
 
-	//Runnable reader;
-	AudioWriter writer;
-	Thread producer;
+	AudioWriterThread writer;
+	public static ThreadedPlayer instance = new ThreadedPlayer();
 	
-	public ThreadedPlayer(WaveformGUI waveform) {
+	private ThreadedPlayer() {
 		writer = null;
 		try {
-			writer = new AudioWriter(waveform);
+			writer = new AudioWriterThread();
 		} catch (LineUnavailableException e1) {
 			e1.printStackTrace();
 			System.exit(0);
 		}
-		producer = new Thread(writer);
-		producer.start();
+		writer.start();
 	}
 	
 	public void playNote(Note note) {
@@ -41,7 +41,7 @@ public class ThreadedPlayer {
 	}
 	
 	public void stop() {
-		producer.interrupt();
+		writer.interrupt();
 		// TODO: Figure out how to close cleanly (without bzzt at the end if a note is playing when quit happens)
 	}
 }
