@@ -14,12 +14,10 @@ import ui.StaffGUI;
 import ui.ToneKeyboard;
 import ui.UIController;
 import ui.WaveformGUI;
-import audio.FilterFactory;
-import audio.LogFilter;
+import audio.AudioSenderThread;
 import audio.Metronome;
-import audio.NoOpFilter;
 import audio.Player;
-import audio.ThreadedPlayer;
+import audio.SineGenerator;
 import audio.Tone;
 
 public class ScoreApp {
@@ -32,12 +30,25 @@ public class ScoreApp {
 	Metronome metronome;
 	
 	public ScoreApp() {
-		FilterFactory.addFilterPrototype(new NoOpFilter());
+		AudioSenderThread.startSendingAudio();
+		
+		//FilterFactory.addFilterPrototype(new NoOpFilter());
 		//FilterFactory.addFilterPrototype(new NoiseFilter());
-		FilterFactory.addFilterPrototype(new LogFilter(10000));
+		//FilterFactory.addFilterPrototype(new LogFilter(10000));
 		
 		staffGUI = new StaffGUI();
-		waveformGUI = new WaveformGUI(Player.getToneBytes(new Tone(440), 1.0));
+		
+		SineGenerator sine = new SineGenerator(440, 1.0, (int) AudioSenderThread.SAMPLES_PER_SECOND / 10);
+		sine.fillBuffers();
+		double[] buffer = sine.getBuffer();
+		byte[] bytes = new byte[buffer.length];
+		for (int i = 0; i < buffer.length; i++) {
+			//System.out.println(buffer[i]);
+			bytes[i] = (byte) (buffer[i] * 127);
+		}
+		waveformGUI = new WaveformGUI(bytes);
+		
+		
 		toneKeyboard = new ToneKeyboard();
 		
 		initTestScore();
@@ -73,7 +84,7 @@ public class ScoreApp {
 		//score.addNote(new Note(new Tone(-2), Note.Length.WHOLE)); // Why broken??!
 
 		//score.playNotes();
-		score.play();
+		//score.play();
 	}
 	
 	public static void main(String[] args) {
@@ -83,7 +94,7 @@ public class ScoreApp {
 		JFrame appFrame = new JFrame("Score");
 		appFrame.addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) { 
-				ThreadedPlayer.instance.stop();
+				//ThreadedPlayer.instance.stop();
 				System.exit(0); }
 		});
 				

@@ -6,13 +6,13 @@ import transcription.Note;
 
 public class ThreadedPlayer {
 
-	AudioWriterThread writer;
+	AudioSenderThread writer;
 	public static ThreadedPlayer instance = new ThreadedPlayer();
 	
 	private ThreadedPlayer() {
 		writer = null;
 		try {
-			writer = new AudioWriterThread();
+			writer = new AudioSenderThread();
 		} catch (LineUnavailableException e1) {
 			e1.printStackTrace();
 			System.exit(0);

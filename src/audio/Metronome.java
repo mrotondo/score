@@ -25,7 +25,7 @@ public class Metronome {
 		}
 		
 		public void run() {
-			ThreadedPlayer.instance.playClick();
+			//ThreadedPlayer.instance.playClick();
 		}
 		
 	}

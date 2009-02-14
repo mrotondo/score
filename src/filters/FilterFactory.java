@@ -1,6 +1,8 @@
-package audio;
+package filters;
 
 import java.util.LinkedList;
+
+import audio.AudioGenerator;
 
 public class FilterFactory {
 

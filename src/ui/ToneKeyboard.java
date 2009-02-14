@@ -5,7 +5,7 @@ import java.awt.event.KeyListener;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import audio.ThreadedPlayer;
+import audio.AudioWriterThread;
 import audio.Tone;
 
 
@@ -16,10 +16,10 @@ public class ToneKeyboard implements KeyListener {
 	
 	public ToneKeyboard() {
 		super();
-		
 		initKeyToneMap();
 	}
 	
+	// TODO(mrotondo): Figure out a better way to create these maps
 	public void initKeyToneMap() {
 		keyToneMap.put(65, 51);
 		keyPressedMap.put(65, false);
@@ -42,8 +42,9 @@ public class ToneKeyboard implements KeyListener {
 	public void keyPressed(KeyEvent e) {
 		int keyCode = e.getKeyCode();
 		if (keyToneMap.containsKey(keyCode) && !keyPressedMap.get(keyCode)) {
-			int pitch = keyToneMap.get(keyCode);			
-			ThreadedPlayer.instance.startTone(new Tone(pitch).getFrequency());
+			Tone tone = new Tone(keyToneMap.get(keyCode));
+			//ThreadedPlayer.instance.startTone(tone.getFrequency());
+			AudioWriterThread.startTone(tone.getFrequency());
 			keyPressedMap.put(keyCode, true);
 		}
 	}
@@ -51,7 +52,9 @@ public class ToneKeyboard implements KeyListener {
 	public void keyReleased(KeyEvent e) {
 		int keyCode = e.getKeyCode();
 		if (keyToneMap.containsKey(keyCode)) {
-			ThreadedPlayer.instance.stopTone(new Tone(keyToneMap.get(keyCode)).getFrequency());
+			Tone tone = new Tone(keyToneMap.get(keyCode));
+			//ThreadedPlayer.instance.stopTone(tone.getFrequency());
+			AudioWriterThread.stopTone(tone.getFrequency());
 			keyPressedMap.put(keyCode, false);
 		}
 	}

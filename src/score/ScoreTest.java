@@ -2,13 +2,13 @@ package score;
 
 import javax.sound.sampled.LineUnavailableException;
 
-import audio.Player;
-import audio.SineWriter;
-import audio.Tone;
-
 import transcription.Note;
 import transcription.Score;
 import ui.StaffGUI;
+import audio.AudioSenderThread;
+import audio.Player;
+import audio.SineGenerator;
+import audio.Tone;
 
 public class ScoreTest {
 
@@ -148,10 +148,10 @@ public class ScoreTest {
 	}
 	
 	private void testToneWriter() {
-		SineWriter sw = new SineWriter(440, 1.0);
-		gAssEqInt(44100, sw.millisInSamples(1000));
-		gAssEqInt(4410, sw.millisInSamples(100));
-		gAssEqInt(441, sw.millisInSamples(10));
+		SineGenerator sw = new SineGenerator(440, 1.0, 1);
+		gAssEqInt(44100, sw.millisToSamples(1000));
+		gAssEqInt(4410, sw.millisToSamples(100));
+		gAssEqInt(441, sw.millisToSamples(10));
 	}
 	
 	private void gAssEqDouble(double val1, double val2) {
