@@ -16,9 +16,10 @@ import ui.UIController;
 import ui.WaveformGUI;
 import audio.AudioSenderThread;
 import audio.Metronome;
-import audio.Player;
 import audio.SineGenerator;
 import audio.Tone;
+import filters.FilterFactory;
+import filters.LogFilter;
 
 public class ScoreApp {
 
@@ -34,18 +35,20 @@ public class ScoreApp {
 		
 		//FilterFactory.addFilterPrototype(new NoOpFilter());
 		//FilterFactory.addFilterPrototype(new NoiseFilter());
-		//FilterFactory.addFilterPrototype(new LogFilter(10000));
+		FilterFactory.addFilterPrototype(new LogFilter(10000));
 		
 		staffGUI = new StaffGUI();
 		
-		SineGenerator sine = new SineGenerator(440, 1.0, (int) AudioSenderThread.SAMPLES_PER_SECOND / 10);
-		sine.fillBuffers();
-		double[] buffer = sine.getBuffer();
+		SineGenerator sine = new SineGenerator(440, 1.0);
+		FilterFactory.applyFilters(sine);
+		double[] buffer = sine.getSamples(AudioSenderThread.SAMPLES_PER_SECOND);
+		System.out.println(buffer[buffer.length / 4]);
 		byte[] bytes = new byte[buffer.length];
 		for (int i = 0; i < buffer.length; i++) {
-			//System.out.println(buffer[i]);
 			bytes[i] = (byte) (buffer[i] * 127);
 		}
+		
+		//byte[] bytes = new byte[1];
 		waveformGUI = new WaveformGUI(bytes);
 		
 		

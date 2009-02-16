@@ -41,7 +41,7 @@ public class WaveformGUI extends JPanel {
 		for (int i = 1; i < waveform.length; i++) {
 			int prevAmplitude = (int) (waveform[i-1] * yScale);
 			int amplitude = (int) (waveform[i] * yScale);
-			g2.drawLine((int) (xPadding + (i - 1)  * xScale), yCenter + prevAmplitude, (int) (xPadding + i * xScale), yCenter + amplitude);
+			g2.drawLine((int) (xPadding + (i - 1)  * xScale), yCenter - prevAmplitude, (int) (xPadding + i * xScale), yCenter - amplitude);
 		}
 	}
 	

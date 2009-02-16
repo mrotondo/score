@@ -148,7 +148,7 @@ public class ScoreTest {
 	}
 	
 	private void testToneWriter() {
-		SineGenerator sw = new SineGenerator(440, 1.0, 1);
+		SineGenerator sw = new SineGenerator(440, 1.0);
 		gAssEqInt(44100, sw.millisToSamples(1000));
 		gAssEqInt(4410, sw.millisToSamples(100));
 		gAssEqInt(441, sw.millisToSamples(10));

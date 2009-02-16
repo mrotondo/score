@@ -1,22 +1,28 @@
 package audio;
 
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 
+import filters.FilterFactory;
+
 public class AudioSenderThread extends Thread {
 
-	public static final float SAMPLES_PER_SECOND = 44100;
-	public static final int BUFFER_LENGTH = (int) SAMPLES_PER_SECOND / 400;
-	//static final int MAX_TONE_AMPLITUDE = 62;
+	public static final int SAMPLES_PER_SECOND = 44100;
+	public static final int BUFFER_LENGTH = SAMPLES_PER_SECOND / 400;
+	static final int MAX_TONE_AMPLITUDE = 127;
 	byte[] writeBuffer;
 	int writePosition, signalCounter;
 	AudioFormat format;
 	SourceDataLine dataLine;
+	
 	HashMap<Double, AudioGenerator> toneMap;
+	private ConcurrentLinkedQueue<Double> tonesToAdd;
+	private ConcurrentLinkedQueue<Double> tonesToRemove;
 	
 	private static AudioSenderThread audioSenderThread;
 	
@@ -31,14 +37,14 @@ public class AudioSenderThread extends Thread {
 	
 	public AudioSenderThread() throws LineUnavailableException {
 		writeBuffer = new byte[BUFFER_LENGTH];  // Write to the SourceDataLine every nth of a second
-		format = new AudioFormat(SAMPLES_PER_SECOND, 8, 1 , true, true);
+		format = new AudioFormat((float) SAMPLES_PER_SECOND, 8, 1 , true, true);
 		dataLine = AudioSystem.getSourceDataLine(format);
 		toneMap = new HashMap<Double, AudioGenerator>();
+		tonesToAdd = new ConcurrentLinkedQueue<Double>();
+		tonesToRemove = new ConcurrentLinkedQueue<Double>();
 	}
 	
 	public void run() {
-		System.out.println("AudioSenderThread starting...");
-		AudioWriterThread.startWritingAudio();
 		
 		try {
 			dataLine.open(format);
@@ -52,42 +58,42 @@ public class AudioSenderThread extends Thread {
 		
 		while(!isInterrupted()) {
 			
-			int perSignalAmplitude = 127;  // un-normalized
+			while (!tonesToAdd.isEmpty()) {
+				Double freq = tonesToAdd.remove();
+				SineGenerator sineWriter = new SineGenerator(freq, 1.0);
+				FilterFactory.applyFilters(sineWriter);
+				toneMap.put(freq, sineWriter);
+			}
+			while (!tonesToRemove.isEmpty()) {
+				Double freq = tonesToRemove.remove();
+				toneMap.remove(freq);
+			}
 			
-			AudioGenerator[] toneArray = AudioWriterThread.getAudioGenerators();
-			if (toneArray.length > 0) {
-				//perSignalAmplitude = MAX_TONE_AMPLITUDE / toneArray.length; // normalize the volume of all the tones to produce exactly max volume
-				
-				double amplitude = 0;
-				boolean send = true;
-				double[][] signals = new double[toneArray.length][writeBuffer.length];
+			int perSignalAmplitude = 127;  // un-normalized
+			if (!toneMap.isEmpty()) {
+				perSignalAmplitude = MAX_TONE_AMPLITUDE / toneMap.size(); // normalize the volume of all the tones to produce exactly max volume
 
-				// TODO: Instead of checking to see if a tone can write n, writing n, and then re-writing n, might just check to see if it can write n
-				//       and then write those during one pass for all tones that can do so (or just fail if any can't write n)
-				for (int toneIndex = 0; toneIndex < toneArray.length; toneIndex++) {
-					AudioGenerator toneWriter = toneArray[toneIndex];
-					double[] toneAmplitudes = toneWriter.getBuffer();
-					
-					if (toneAmplitudes == null) {
-						send = false;
+				// TODO: Possibly do something other than send all or send none?
+				boolean shouldSendData = true;
+				for (AudioGenerator audioGenerator : toneMap.values()) {
+					if (!audioGenerator.shouldSendSamples(BUFFER_LENGTH)) {
+						shouldSendData = false;
 						break;
 					}
-					signals[toneIndex] = toneAmplitudes;
 				}
-				
-				
-				if (send) {
-					for (writePosition = 0; writePosition < writeBuffer.length; writePosition++, signalCounter++) {
-						amplitude = 0;
-						for (int toneIndex = 0; toneIndex < toneArray.length; toneIndex++) {
-							amplitude += signals[toneIndex][writePosition] * 127; //* perSignalAmplitude;
-							writeBuffer[writePosition] = (byte) amplitude;
+				//System.out.println(shouldSendData);
+				for(int i = 0; i < BUFFER_LENGTH; i++) { writeBuffer[i] = 0; }
+				if (shouldSendData) {
+					for (AudioGenerator audioGenerator : toneMap.values()) {
+						double[] toneBuffer = audioGenerator.getSamples(BUFFER_LENGTH); 
+						for (int i = 0; i < BUFFER_LENGTH; i++) {
+							writeBuffer[i] += (byte) (toneBuffer[i] * perSignalAmplitude);
 						}
 					}
-					
-					dataLine.write(writeBuffer, 0, writePosition);
-					writePosition = 0;
-				}
+					dataLine.write(writeBuffer, 0, BUFFER_LENGTH);
+				} /*else {
+					System.out.println("Nope.");
+				}*/
 			}
 			
 			/*try {
@@ -100,5 +106,14 @@ public class AudioSenderThread extends Thread {
 		}
 		dataLine.stop();
 		dataLine.flush();
+	}
+	
+	
+	public static void startTone(double freq) {
+		audioSenderThread.tonesToAdd.add(freq);
+	}
+
+	public static void stopTone(double freq) {
+		audioSenderThread.tonesToRemove.add(freq);
 	}
 }

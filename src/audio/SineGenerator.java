@@ -1,95 +1,62 @@
 package audio;
 
 import java.util.LinkedList;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import filters.Filter;
 
 public class SineGenerator implements AudioGenerator {
-
-	private double frequency;
-	private double volume;
-	
-	private int positionInSamples;
 	private int samplesSent;
 	private long timeStartedMillis;
 	
 	private LinkedList<Filter> filters;
 	
-	private int writeBufferIndex;
-	private int readBufferIndex;
-	private double[][] buffers;
-	boolean[] needsFilling;
-	Lock[] bufferLocks;
-	private final int bufferLength;
+	private double[] buffer;
+	private int readIndex;
 	
-	public SineGenerator(double frequency, double volume, int bufferLengthInSamples) {
-		this.frequency = frequency;
-		this.volume = volume;
-		this.bufferLength = bufferLengthInSamples;
-		
-		writeBufferIndex = 0;
-		readBufferIndex = 0;
-		buffers = new double[10][bufferLength];
-		needsFilling = new boolean[buffers.length];
-		for (int i = 0; i < needsFilling.length; i++) { needsFilling[i] = true; }
-		bufferLocks = new Lock[buffers.length];
-		for (int i = 0; i < bufferLocks.length; i++) { bufferLocks[i] = new ReentrantLock(); }
+	public SineGenerator(double frequency, double volume) {
+		buffer = new double[(int) (AudioSenderThread.SAMPLES_PER_SECOND / frequency)];
+		for (int i = 0; i < buffer.length; i++) {
+			buffer[i] = Math.sin((i * 2 * Math.PI) / buffer.length);
+		}
+		readIndex = 0;
 		
 		timeStartedMillis = System.currentTimeMillis();
 		samplesSent = 0;
-		positionInSamples = 0;
 		
 		filters = new LinkedList<Filter>();
-	
-		fillBuffers();
 	}
 	
 	// should be private
 	public int millisToSamples(float millis) {
-		return (int) (millis / 1000 * (int) AudioSenderThread.SAMPLES_PER_SECOND);
+		return (int) (millis / 1000 * AudioSenderThread.SAMPLES_PER_SECOND);
 	}
 	
-	public boolean shouldSendData(int numSamples) {
-		return millisToSamples(System.currentTimeMillis() - timeStartedMillis) - samplesSent <= numSamples;
+	public boolean shouldSendSamples(int numSamples) {
+		/*
+		System.out.println("Should " + this + " send " + numSamples + " samples?");
+		System.out.println("Samples alive: " + millisToSamples(System.currentTimeMillis() - timeStartedMillis));
+		System.out.println("Samples sent: " + samplesSent);
+		System.out.println("Samples I should send: " + (millisToSamples(System.currentTimeMillis() - timeStartedMillis) - samplesSent));
+		*/
+		boolean shouldSend = millisToSamples(System.currentTimeMillis() - timeStartedMillis) - samplesSent >= numSamples;
+		//System.out.println(shouldSend);
+		return shouldSend;
 	}
 	
-	public void fillBuffers() {
-		System.out.println("fill");
-		while (needsFilling[writeBufferIndex]) {
-			synchronized(buffers[writeBufferIndex]) {
-				if (needsFilling[writeBufferIndex]) {
-					double[] amplitudes = buffers[writeBufferIndex];
-					for (int i = 0; i < bufferLength; i++) {
-						amplitudes[i] = Math.sin((((positionInSamples++ + i) * 2 * Math.PI) / AudioSenderThread.SAMPLES_PER_SECOND) * frequency) * volume;
-					}
-					filterAmplitudes(amplitudes);
-					
-					needsFilling[writeBufferIndex] = false;
-					writeBufferIndex = (writeBufferIndex + 1) % buffers.length;
-				}
-			}
+	public double[] getSamples(int numSamples) {
+		double[] returnBuffer = new double[numSamples];
+		for (int i = 0; i < numSamples; i++) {
+			returnBuffer[i] = buffer[readIndex];
+			readIndex = (readIndex + 1) % buffer.length;
 		}
-	}
-	
-	public double[] getBuffer() {
-		System.out.println("get");
-		synchronized(buffers[readBufferIndex]) {
-			if (!shouldSendData(bufferLength) || null == buffers[readBufferIndex]) return null;
-			
-			double[] bufferToReturn = buffers[readBufferIndex];
-			needsFilling[readBufferIndex] = true;
-			readBufferIndex = (readBufferIndex + 1) % buffers.length;
-			
-			samplesSent += bufferLength;
-			return bufferToReturn;
-		}
+		filterSamples(returnBuffer);
+		samplesSent += numSamples;
+		return returnBuffer;
 	}
 
-	private void filterAmplitudes(double[] amplitudes) {
+	private void filterSamples(double[] samples) {
 		for (Filter filter : filters) {
-			filter.transformAmplitudes(amplitudes);
+			filter.transformSamples(samples);
 		}
 	}
 	

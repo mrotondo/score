@@ -17,9 +17,9 @@ public class LogFilter implements Filter {
 		counter = 0;
 	}
 
-	public void transformAmplitudes(double[] amplitudes) {
-		for (int i = 0; i < amplitudes.length; i++) {
-			amplitudes[i] *= Math.min(1.0, Math.log((counter + 1) / this.denominator));
+	public void transformSamples(double[] samples) {
+		for (int i = 0; i < samples.length; i++) {
+			samples[i] *= Math.min(1.0, Math.log((counter) / this.denominator + 1));
 			counter++;
 		}
 	}

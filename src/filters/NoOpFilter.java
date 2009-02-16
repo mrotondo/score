@@ -14,7 +14,7 @@ public class NoOpFilter implements Filter {
 		return new NoOpFilter();
 	}
 
-	public void transformAmplitudes(double[] amplitudes) {
+	public void transformSamples(double[] samples) {
 		
 	}
 	

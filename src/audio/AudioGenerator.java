@@ -3,7 +3,7 @@ package audio;
 import filters.Filter;
 
 public interface AudioGenerator {
-	public void fillBuffers();
-	public double[] getBuffer();
+	public boolean shouldSendSamples(int numSamples);
+	public double[] getSamples(int numSamples);
 	public void addFilter(Filter filter);
 }
