@@ -17,6 +17,9 @@ public class Tone {
 	public Tone(int pitch) {
 		this.pitch = pitch;
 	}
+	public Tone clone() {
+		return new Tone(this.pitch);
+	}
 	
 	public int getOctave() {
 		return pitchToOctave(this.pitch);

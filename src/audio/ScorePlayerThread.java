@@ -20,20 +20,17 @@ public class ScorePlayerThread extends Thread {
 		Note note = noteIterator.next();
 		double durationSeconds = Score.noteDuration(note.duration, score.tempo, score.getsTheBeat) * 1000;
 		Long startTime = System.currentTimeMillis();
-		//ThreadedPlayer.instance.startTone(note.tone.getFrequency());
 		AudioSenderThread.startTone(note.tone.getFrequency());
 		
 		while (!isInterrupted()) {
 			if (System.currentTimeMillis() - startTime > durationSeconds) {
 				if (noteIterator.hasNext()) {
-					//ThreadedPlayer.instance.stopTone(note.tone.getFrequency());
+					AudioSenderThread.stopTone(note.tone.getFrequency());
 					note = noteIterator.next();
 					durationSeconds = Score.noteDuration(note.duration, score.tempo, score.getsTheBeat) * 1000;
 					startTime = System.currentTimeMillis();
-					//ThreadedPlayer.instance.startTone(note.tone.getFrequency());
 					AudioSenderThread.startTone(note.tone.getFrequency());
 				} else {
-					//ThreadedPlayer.instance.stopTone(note.tone.getFrequency());
 					AudioSenderThread.stopTone(note.tone.getFrequency());
 					score.stop();
 				}

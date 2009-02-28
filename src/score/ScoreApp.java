@@ -2,6 +2,8 @@ package score;
 
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.GraphicsDevice;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
@@ -9,9 +11,11 @@ import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 
 import transcription.Note;
+import transcription.Scale;
 import transcription.Score;
 import ui.StaffGUI;
 import ui.ToneKeyboard;
+import ui.ToneLinesUI;
 import ui.UIController;
 import ui.WaveformGUI;
 import audio.AudioSenderThread;
@@ -28,6 +32,7 @@ public class ScoreApp {
 	StaffGUI staffGUI;
 	ToneKeyboard toneKeyboard;
 	UIController uiController;
+	ToneLinesUI toneLines;
 	Metronome metronome;
 	
 	public ScoreApp() {
@@ -50,8 +55,7 @@ public class ScoreApp {
 		
 		//byte[] bytes = new byte[1];
 		waveformGUI = new WaveformGUI(bytes);
-		
-		
+		toneLines = new ToneLinesUI(Scale.melodicMinorScale, new Tone(51));
 		toneKeyboard = new ToneKeyboard();
 		
 		initTestScore();
@@ -59,6 +63,7 @@ public class ScoreApp {
 		metronome = new Metronome(score);
 		
 		uiController = new UIController(this);
+		
 	}
 	
 	public void startMetronome() {
@@ -103,15 +108,25 @@ public class ScoreApp {
 				
 		Container contentPane = appFrame.getContentPane();
 		contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.Y_AXIS));
+		scoreApp.staffGUI.setPreferredSize(new Dimension(1400, 100));
+		scoreApp.waveformGUI.setPreferredSize(new Dimension(1400, 100));
+		scoreApp.toneLines.setPreferredSize(new Dimension(1400, 600));
 		contentPane.add(scoreApp.staffGUI);
 		contentPane.add(scoreApp.waveformGUI);
+		contentPane.add(scoreApp.toneLines);
 		appFrame.addKeyListener(scoreApp.toneKeyboard);
 		appFrame.addKeyListener(scoreApp.uiController);
-		appFrame.addMouseListener(scoreApp.uiController);
-		appFrame.setResizable(false);
-		appFrame.pack();
-		appFrame.setSize(new Dimension(1400, 400));
+		scoreApp.toneLines.addMouseListener(scoreApp.toneLines);
+		scoreApp.toneLines.addMouseMotionListener(scoreApp.toneLines);
+		//appFrame.setResizable(false);
+		//appFrame.pack();
+		//appFrame.setSize(new Dimension(1400, 800));
+		appFrame.setUndecorated(true);
 		appFrame.setVisible(true);
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice gd = ge.getDefaultScreenDevice();
+		gd.setFullScreenWindow(appFrame);
+		
 	}
 }
 

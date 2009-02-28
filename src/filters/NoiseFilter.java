@@ -16,7 +16,7 @@ public class NoiseFilter implements Filter {
 
 	public void transformSamples(double[] samples) {
 		for (int i = 0; i < samples.length; i++) {
-			samples[i] = random.nextDouble();
+			samples[i] = random.nextDouble() * 2 - 1;
 		}
 	}
 

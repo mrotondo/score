@@ -3,9 +3,9 @@ package score;
 import javax.sound.sampled.LineUnavailableException;
 
 import transcription.Note;
+import transcription.Scale;
 import transcription.Score;
 import ui.StaffGUI;
-import audio.AudioSenderThread;
 import audio.Player;
 import audio.SineGenerator;
 import audio.Tone;
@@ -29,10 +29,27 @@ public class ScoreTest {
 
 		System.out.println("About to test ToneWriter");
 		test.testToneWriter();
+
+		System.out.println("About to test Scale");
+		test.testScale();
 		
 		System.out.println("Success!");
 	}
 
+	private void testScale() {
+		Tone tonic = new Tone(51);
+		Scale maj = Scale.majorScale;
+		gAssEqInt(Scale.getTone(maj, tonic, 0).pitch, 51);
+		gAssEqInt(Scale.getTone(maj, tonic, 1).pitch, 53);
+		gAssEqInt(Scale.getTone(maj, tonic, 2).pitch, 55);
+		gAssEqInt(Scale.getTone(maj, tonic, 3).pitch, 56);
+		gAssEqInt(Scale.getTone(maj, tonic, 4).pitch, 58);
+		gAssEqInt(Scale.getTone(maj, tonic, 5).pitch, 60);
+		gAssEqInt(Scale.getTone(maj, tonic, 6).pitch, 62);
+		gAssEqInt(Scale.getTone(maj, tonic, 7).pitch, 63);
+		gAssEqInt(Scale.getTone(maj, tonic, 8).pitch, 65);
+	}
+	
 	private void testScore() {
 
 		System.out.println("Testing noteDuration");
@@ -104,7 +121,7 @@ public class ScoreTest {
 	private void testNote() {
 		System.out.println("Note testing any bullshit");
 	}
-
+	
 	private void testTone() {
 		System.out.println("Testing pitchToFrequency");
 		gAssEqDouble(Tone.pitchToFrequency(-12), 13.75);

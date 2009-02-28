@@ -12,18 +12,30 @@ public class SineGenerator implements AudioGenerator {
 	
 	private double[] buffer;
 	private int readIndex;
+	private double frequency;
+	private double nextFrequency;
+	private double volume;
+	private double nextVolume;
 	
 	public SineGenerator(double frequency, double volume) {
-		buffer = new double[(int) (AudioSenderThread.SAMPLES_PER_SECOND / frequency)];
+		this.frequency = frequency;
+		this.nextFrequency = frequency;
+		
+		this.volume = volume;
+		this.nextVolume = volume;
+		
+		buffer = new double[AudioSenderThread.SAMPLES_PER_SECOND];
 		for (int i = 0; i < buffer.length; i++) {
 			buffer[i] = Math.sin((i * 2 * Math.PI) / buffer.length);
 		}
 		readIndex = 0;
-		
-		timeStartedMillis = System.currentTimeMillis();
 		samplesSent = 0;
 		
 		filters = new LinkedList<Filter>();
+	}
+	
+	public void start() {
+		timeStartedMillis = System.currentTimeMillis();
 	}
 	
 	// should be private
@@ -32,28 +44,36 @@ public class SineGenerator implements AudioGenerator {
 	}
 	
 	public boolean shouldSendSamples(int numSamples) {
-		/*
-		System.out.println("Should " + this + " send " + numSamples + " samples?");
-		System.out.println("Samples alive: " + millisToSamples(System.currentTimeMillis() - timeStartedMillis));
-		System.out.println("Samples sent: " + samplesSent);
-		System.out.println("Samples I should send: " + (millisToSamples(System.currentTimeMillis() - timeStartedMillis) - samplesSent));
-		*/
 		boolean shouldSend = millisToSamples(System.currentTimeMillis() - timeStartedMillis) - samplesSent >= numSamples;
-		//System.out.println(shouldSend);
 		return shouldSend;
 	}
 	
 	public double[] getSamples(int numSamples) {
+		frequency = nextFrequency;
+		volume = nextVolume;
 		double[] returnBuffer = new double[numSamples];
 		for (int i = 0; i < numSamples; i++) {
-			returnBuffer[i] = buffer[readIndex];
-			readIndex = (readIndex + 1) % buffer.length;
+			returnBuffer[i] = buffer[readIndex] * volume;
+			readIndex = (readIndex + (int) frequency) % buffer.length;
 		}
 		filterSamples(returnBuffer);
 		samplesSent += numSamples;
 		return returnBuffer;
 	}
 
+	public void setFrequency(double frequency) { 
+		nextFrequency = Math.max(0, frequency);
+	}
+	public double getFrequency() {
+		return frequency;
+	}
+	public void setVolume(double volume) { 
+		nextVolume = volume;
+	}
+	public double getVolume() {
+		return volume;
+	}
+	
 	private void filterSamples(double[] samples) {
 		for (Filter filter : filters) {
 			filter.transformSamples(samples);
